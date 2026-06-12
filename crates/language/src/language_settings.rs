@@ -72,6 +72,8 @@ pub struct LanguageSettings {
     /// if softwrap is set to 'preferred_line_length', and will show any
     /// additional guides as specified by the 'wrap_guides' setting.
     pub show_wrap_guides: bool,
+    /// Shows the method separators (horizontal rulers between methods).
+    pub show_method_separators: bool,
     /// Character counts at which to show wrap guides (vertical rulers) in the editor.
     pub wrap_guides: Vec<usize>,
     /// Indent guide related settings.
@@ -723,6 +725,7 @@ impl settings::Settings for AllLanguageSettings {
                 hard_tabs: settings.hard_tabs.unwrap(),
                 soft_wrap: settings.soft_wrap.unwrap(),
                 preferred_line_length: settings.preferred_line_length.unwrap(),
+                show_method_separators: settings.show_method_separators.unwrap(),
                 show_wrap_guides: settings.show_wrap_guides.unwrap(),
                 wrap_guides: settings.wrap_guides.unwrap(),
                 indent_guides: IndentGuideSettings {

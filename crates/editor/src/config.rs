@@ -57,6 +57,15 @@ impl Editor {
         cx.notify();
     }
 
+    pub fn set_show_method_separators(
+        &mut self,
+        show_method_separators: bool,
+        cx: &mut Context<Self>,
+    ) {
+        self.show_method_separators = Some(show_method_separators);
+        cx.notify();
+    }
+
     pub fn set_show_indent_guides(&mut self, show_indent_guides: bool, cx: &mut Context<Self>) {
         self.show_indent_guides = Some(show_indent_guides);
         cx.notify();
@@ -245,6 +254,21 @@ impl Editor {
         }
 
         wrap_guides
+    }
+
+    pub(super) fn method_separators(&self, cx: &App) -> SmallVec<[(usize, bool); 20]> {
+        let mut method_guides = smallvec![];
+
+        if self.show_method_separators == Some(false) {
+            return method_guides;
+        }
+
+        let settings = self.buffer.read(cx).language_settings(cx);
+        if settings.show_method_separators {
+            //TODO: probs the logic is supposed to go here?
+        }
+
+        method_guides
     }
 
     pub(super) fn soft_wrap_mode(&self, cx: &App) -> SoftWrap {

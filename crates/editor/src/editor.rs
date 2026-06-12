@@ -991,6 +991,7 @@ pub struct Editor {
     show_diff_review_button: bool,
     show_wrap_guides: Option<bool>,
     show_indent_guides: Option<bool>,
+    show_method_separators: Option<bool>,
     buffers_with_disabled_indent_guides: HashSet<BufferId>,
     highlight_order: usize,
     highlighted_rows: TypeIdHashMap<Vec<RowHighlight>>,
@@ -2204,6 +2205,8 @@ impl Editor {
             show_breakpoints: None,
             show_diff_review_button: false,
             show_wrap_guides: None,
+            //TODO: This is WIP only for development, default is None
+            show_method_separators: Some(true),
             show_indent_guides,
             buffers_with_disabled_indent_guides: HashSet::default(),
             highlight_order: 0,
@@ -11550,6 +11553,22 @@ pub fn column_pixels(style: &EditorStyle, column: usize, window: &Window) -> Pix
         font_size,
         &[TextRun {
             len: column,
+            font: style.text.font(),
+            color: Hsla::default(),
+            ..Default::default()
+        }],
+        None,
+    );
+
+    layout.width
+}
+pub fn row_pixels(style: &EditorStyle, row: usize, window: &Window) -> Pixels {
+    let font_size = style.text.font_size.to_pixels(window.rem_size());
+    let layout = window.text_system().shape_line(
+        SharedString::from(" ".repeat(row)),
+        font_size,
+        &[TextRun {
+            len: row,
             font: style.text.font(),
             color: Hsla::default(),
             ..Default::default()

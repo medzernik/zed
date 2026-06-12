@@ -415,6 +415,8 @@
   // if 'soft_wrap' is set to 'preferred_line_length', and will show any
   // additional guides as specified by the 'wrap_guides' setting.
   "show_wrap_guides": true,
+  // Whether to show the vertical ruler separators between methods
+  "show_method_separators": false,
   // Character counts at which to show wrap guides in the editor.
   "wrap_guides": [],
   // Hide the values of in variables from visual display in private files

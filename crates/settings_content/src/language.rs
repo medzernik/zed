@@ -420,6 +420,10 @@ pub struct LanguageSettingsContent {
     ///
     /// Default: true
     pub show_wrap_guides: Option<bool>,
+    /// Shows the separators between methods
+    ///
+    /// Default: false
+    pub show_method_separators: Option<bool>,
     /// Character counts at which to show wrap guides in the editor.
     ///
     /// Default: []

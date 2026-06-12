@@ -2321,6 +2321,39 @@ impl EditorElement {
             .collect()
     }
 
+    fn layout_method_separators(
+        &self,
+        em_advance: Pixels,
+        scroll_position: gpui::Point<f64>,
+        content_origin: gpui::Point<Pixels>,
+        scrollbar_layout: Option<&EditorScrollbars>,
+        vertical_scrollbar_width: Pixels,
+        hitbox: &Hitbox,
+        window: &Window,
+        cx: &App,
+    ) -> SmallVec<[(Pixels, bool); 2]> {
+        let scroll_left = scroll_position.x as f32 * em_advance;
+        let content_origin = content_origin.x;
+        let vertical_offset = content_origin - scroll_left;
+        let horizontal_scrollbar_width = scrollbar_layout
+            .and_then(|layout| layout.visible.then_some(vertical_scrollbar_width))
+            .unwrap_or_default();
+
+        self.editor
+            .read(cx)
+            .method_separators(cx)
+            .into_iter()
+            .flat_map(|(guide, active)| {
+                let wrap_position = column_pixels(&self.style, guide, window);
+                let wrap_guide_x = wrap_position + vertical_offset;
+                let display_wrap_guide = wrap_guide_x >= content_origin
+                    && wrap_guide_x <= hitbox.bounds.right() - horizontal_scrollbar_width;
+
+                display_wrap_guide.then_some((wrap_guide_x, active))
+            })
+            .collect()
+    }
+
     fn calculate_indent_guide_bounds(
         row_range: Range<MultiBufferRow>,
         line_height: Pixels,
