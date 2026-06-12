@@ -256,21 +256,6 @@ impl Editor {
         wrap_guides
     }
 
-    pub(super) fn method_separators(&self, cx: &App) -> SmallVec<[(usize, bool); 20]> {
-        let mut method_guides = smallvec![];
-
-        if self.show_method_separators == Some(false) {
-            return method_guides;
-        }
-
-        let settings = self.buffer.read(cx).language_settings(cx);
-        if settings.show_method_separators {
-            //TODO: probs the logic is supposed to go here?
-        }
-
-        method_guides
-    }
-
     pub(super) fn soft_wrap_mode(&self, cx: &App) -> SoftWrap {
         let settings = self.buffer.read(cx).language_settings(cx);
         let mode = self.soft_wrap_mode_override.unwrap_or(settings.soft_wrap);

@@ -83,7 +83,7 @@ use std::{
     time::Duration,
 };
 use sum_tree::Bias;
-use text::BufferId;
+use text::{BufferId, ToPoint};
 use theme::{ActiveTheme, Appearance, PlayerColor};
 use theme_settings::BufferLineHeight;
 use ui::utils::ensure_minimum_contrast;
@@ -2324,10 +2324,11 @@ impl EditorElement {
     fn layout_method_separators(
         &self,
         em_advance: Pixels,
+        snapshot: EditorSnapshot,
         scroll_position: gpui::Point<f64>,
         content_origin: gpui::Point<Pixels>,
         scrollbar_layout: Option<&EditorScrollbars>,
-        vertical_scrollbar_width: Pixels,
+        horizontal_scrollbar_width: Pixels,
         hitbox: &Hitbox,
         window: &Window,
         cx: &App,
@@ -2336,22 +2337,30 @@ impl EditorElement {
         let content_origin = content_origin.x;
         let vertical_offset = content_origin - scroll_left;
         let horizontal_scrollbar_width = scrollbar_layout
-            .and_then(|layout| layout.visible.then_some(vertical_scrollbar_width))
+            .and_then(|layout| layout.visible.then_some(horizontal_scrollbar_width))
             .unwrap_or_default();
 
-        self.editor
-            .read(cx)
-            .method_separators(cx)
-            .into_iter()
-            .flat_map(|(guide, active)| {
-                let wrap_position = column_pixels(&self.style, guide, window);
-                let wrap_guide_x = wrap_position + vertical_offset;
-                let display_wrap_guide = wrap_guide_x >= content_origin
-                    && wrap_guide_x <= hitbox.bounds.right() - horizontal_scrollbar_width;
+        let symbols = &self.editor.read(cx).lsp_document_symbols;
 
-                display_wrap_guide.then_some((wrap_guide_x, active))
+        let items: Vec<_> = symbols
+            .iter()
+            .map(|(buffer, item)| {
+                item.iter()
+                    .filter_map(|x| match x.depth {
+                        0 => None,
+                        any => Some(
+                            any.to_point(
+                                snapshot
+                                    .buffer_for_id(*buffer)
+                                    .expect("omg not like thiiis"),
+                            ),
+                        ),
+                    })
+                    .collect::<Vec<_>>()
             })
-            .collect()
+            .collect();
+
+        todo!()
     }
 
     fn calculate_indent_guide_bounds(
@@ -7975,6 +7984,11 @@ impl Element for EditorElement {
                         && self.editor.read(cx).show_scrollbars.vertical)
                         .then_some(style.scrollbar_width)
                         .unwrap_or_default();
+                    let horizontal_scrollbar_width = (scrollbars_shown
+                        && settings.scrollbar.axes.horizontal
+                        && self.editor.read(cx).show_scrollbars.horizontal)
+                        .then_some(style.scrollbar_width)
+                        .unwrap_or_default();
                     let minimap_width = self
                         .get_minimap_width(
                             &settings.minimap,
@@ -9203,6 +9217,18 @@ impl Element for EditorElement {
                         content_origin,
                         scrollbars_layout.as_ref(),
                         vertical_scrollbar_width,
+                        &hitbox,
+                        window,
+                        cx,
+                    );
+
+                    let method_guides = self.layout_method_separators(
+                        em_advance,
+                        snapshot,
+                        scroll_position,
+                        content_origin,
+                        scrollbars_layout.as_ref(),
+                        horizontal_scrollbar_width,
                         &hitbox,
                         window,
                         cx,
