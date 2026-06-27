@@ -147,6 +147,9 @@ pub struct LanguageConfig {
     /// A list of preferred debuggers for this language.
     #[serde(default)]
     pub debuggers: IndexSet<SharedString>,
+    /// Automatically fold all documentation comments
+    #[serde(default)]
+    pub autofold_doc_comments: Option<bool>,
 }
 
 impl LanguageConfig {
@@ -321,6 +324,8 @@ pub struct BlockCommentConfig {
     /// A indent to add for prefix and end line upon new line.
     #[schemars(range(min = 1, max = 128))]
     pub tab_size: u32,
+    /// Is a documentation comment block
+    pub is_doc: bool,
 }
 
 impl<'de> Deserialize<'de> for BlockCommentConfig {

@@ -554,6 +554,8 @@ actions!(
         FoldAtLevel9,
         /// Folds all function bodies in the editor.
         FoldFunctionBodies,
+        /// Folds all doc comment bodies in the editor.
+        FoldDocCommentBodies,
         /// Folds the current code block and all its children.
         FoldRecursive,
         /// Folds the selected ranges.

@@ -93,6 +93,8 @@ pub enum TextObject {
     AroundClass,
     InsideComment,
     AroundComment,
+    InsideDocComment,
+    AroundDocComment,
 }
 
 impl TextObject {
@@ -104,6 +106,8 @@ impl TextObject {
             "class.around" => Some(TextObject::AroundClass),
             "comment.inside" => Some(TextObject::InsideComment),
             "comment.around" => Some(TextObject::AroundComment),
+            "doccomment.inside" => Some(TextObject::InsideDocComment),
+            "doccomment.around" => Some(TextObject::AroundDocComment),
             _ => None,
         }
     }
@@ -113,6 +117,7 @@ impl TextObject {
             TextObject::InsideFunction => Some(TextObject::AroundFunction),
             TextObject::InsideClass => Some(TextObject::AroundClass),
             TextObject::InsideComment => Some(TextObject::AroundComment),
+            TextObject::InsideDocComment => Some(TextObject::AroundDocComment),
             _ => None,
         }
     }

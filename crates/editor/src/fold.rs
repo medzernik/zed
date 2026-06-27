@@ -380,6 +380,30 @@ impl Editor {
         self.fold_creases(creases, true, window, cx);
     }
 
+    pub fn fold_doc_comment_bodies(
+        &mut self,
+        _: &actions::FoldDocCommentBodies,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let snapshot = self.buffer.read(cx).snapshot(cx);
+
+        let ranges = snapshot
+            .text_object_ranges(
+                MultiBufferOffset(0)..snapshot.len(),
+                TreeSitterOptions::default(),
+            )
+            .filter_map(|(range, obj)| (obj == TextObject::InsideDocComment).then_some(range))
+            .collect::<Vec<_>>();
+
+        let creases = ranges
+            .into_iter()
+            .map(|range| Crease::simple(range, self.display_map.read(cx).fold_placeholder.clone()))
+            .collect();
+
+        self.fold_creases(creases, true, window, cx);
+    }
+
     pub fn fold_recursive(
         &mut self,
         _: &actions::FoldRecursive,
