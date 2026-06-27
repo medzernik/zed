@@ -929,6 +929,8 @@ pub enum FileFinderWidthContent {
 pub struct VimSettingsContent {
     pub default_mode: Option<ModeContent>,
     pub toggle_relative_line_numbers: Option<bool>,
+    pub hide_diag_insert: Option<bool>,
+    pub hide_inline_diag_insert: Option<bool>,
     pub use_system_clipboard: Option<UseSystemClipboard>,
     pub use_smartcase_find: Option<bool>,
     pub use_regex_search: Option<bool>,

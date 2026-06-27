@@ -24,7 +24,7 @@ use collections::HashMap;
 use editor::{
     Anchor, Bias, Editor, EditorEvent, EditorSettings, MultiBufferOffset, NavigationOverlayKey,
     NavigationTargetOverlay, SelectionEffects,
-    actions::Paste,
+    actions::{Paste, ToggleDiagnostics, ToggleInlineDiagnostics},
     display_map::ToDisplayPoint,
     movement::{self, FindRange},
 };
@@ -33,12 +33,16 @@ use gpui::{
     KeystrokeEvent, Render, Subscription, Task, WeakEntity, Window, actions,
 };
 use insert::{NormalBefore, TemporaryNormal};
-use language::{CursorShape, Point, Selection, SelectionGoal, TransactionId};
+use language::{
+    CursorShape, LanguageConfig, Point, Selection, SelectionGoal, TransactionId,
+    language_settings::LanguageSettings,
+};
 pub use mode_indicator::ModeIndicator;
 use motion::Motion;
 use multi_buffer::ToPoint as _;
 use normal::search::SearchSubmit;
 use object::Object;
+use project::project_settings::{DiagnosticSeverity, DiagnosticsSettings, ProjectSettings};
 use schemars::JsonSchema;
 use search::BufferSearchBar;
 use serde::Deserialize;
@@ -563,10 +567,27 @@ impl Vim {
         let editor = cx.entity();
 
         let initial_vim_mode = VimSettings::get_global(cx).default_mode;
+        let hide_diag_insert = VimSettings::get_global(cx).hide_diag_insert;
+        let hide_inline_diag_insert = VimSettings::get_global(cx).hide_inline_diag_insert;
+
         let (mode, last_mode) = if HelixModeSetting::get_global(cx).0 {
             let initial_helix_mode = match initial_vim_mode {
                 Mode::Normal => Mode::HelixNormal,
-                Mode::Insert => Mode::Insert,
+                Mode::Insert => {
+                    if hide_diag_insert {
+                        editor.update(cx, |editor, cx| {
+                            editor.disable_diagnostics(cx);
+                            cx.notify();
+                        });
+                    }
+                    if hide_inline_diag_insert {
+                        editor.update(cx, |editor, cx| {
+                            editor.disable_inline_diagnostics();
+                            cx.notify();
+                        });
+                    }
+                    Mode::Insert
+                }
                 // Otherwise, we panic with a note that we should never get there due to the
                 // possible values of VimSettings::get_global(cx).default_mode being either Mode::Normal or Mode::Insert.
                 _ => unreachable!("Invalid default mode"),
@@ -1202,11 +1223,53 @@ impl Vim {
         let last_mode = self.mode;
         let prior_mode = self.last_mode;
         let prior_tx = self.current_tx;
+        let editor = self.editor().unwrap();
+        // Check whether the user has enabled diagnostics in the firstplace
+        // TODO: write this value into the vim persistence, then make sure to revert it later
+        let diag_enabled = EditorSettings::get_global(cx)
+            .diagnostics_max_severity
+            .is_some_and(|x| x != DiagnosticSeverity::Off);
+        let inline_diag_enabled = ProjectSettings::get_global(cx).diagnostics.inline.enabled;
+        let hide_diag_insert = VimSettings::get_global(cx).hide_diag_insert;
+        let hide_inline_diag_insert = VimSettings::get_global(cx).hide_inline_diag_insert;
+
         self.last_mode = last_mode;
         self.mode = mode;
         self.operator_stack.clear();
         self.selected_register.take();
         self.cancel_running_command(window, cx);
+        match mode {
+            Mode::Normal | Mode::HelixNormal => {
+                if diag_enabled && hide_diag_insert {
+                    editor.update(cx, |editor, cx| {
+                        editor.toggle_diagnostics(&ToggleDiagnostics, window, cx);
+                        cx.notify();
+                    });
+                }
+                if inline_diag_enabled && hide_inline_diag_insert {
+                    editor.update(cx, |editor, cx| {
+                        editor.toggle_inline_diagnostics(&ToggleInlineDiagnostics, window, cx);
+                        cx.notify();
+                    });
+                }
+            }
+            Mode::Insert => {
+                if diag_enabled && hide_diag_insert {
+                    editor.update(cx, |editor, cx| {
+                        editor.disable_diagnostics(cx);
+                        cx.notify();
+                    });
+                }
+                if inline_diag_enabled && hide_inline_diag_insert {
+                    editor.update(cx, |editor, cx| {
+                        editor.disable_inline_diagnostics();
+                        cx.notify();
+                    });
+                }
+            }
+            _ => (),
+        }
+
         if mode == Mode::Normal || mode != last_mode {
             self.current_tx.take();
             self.current_anchor.take();
@@ -2280,6 +2343,8 @@ struct VimEditorSettingsState {
 struct VimSettings {
     pub default_mode: Mode,
     pub toggle_relative_line_numbers: bool,
+    pub hide_diag_insert: bool,
+    pub hide_inline_diag_insert: bool,
     pub use_system_clipboard: settings::UseSystemClipboard,
     pub use_smartcase_find: bool,
     pub use_regex_search: bool,
@@ -2367,6 +2432,8 @@ impl Settings for VimSettings {
         let vim = content.vim.clone().unwrap();
         Self {
             default_mode: vim.default_mode.unwrap().into(),
+            hide_diag_insert: vim.hide_diag_insert.unwrap().into(),
+            hide_inline_diag_insert: vim.hide_inline_diag_insert.unwrap().into(),
             toggle_relative_line_numbers: vim.toggle_relative_line_numbers.unwrap(),
             use_system_clipboard: vim.use_system_clipboard.unwrap(),
             use_smartcase_find: vim.use_smartcase_find.unwrap(),

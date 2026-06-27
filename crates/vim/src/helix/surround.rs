@@ -357,7 +357,7 @@ mod test {
         cx.simulate_keystrokes("m d {");
         cx.assert_state(
             indoc! {"
-            function test() 
+            function test()
                 return ˇvalue;
             "},
             Mode::HelixNormal,

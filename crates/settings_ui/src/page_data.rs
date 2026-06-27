@@ -2727,7 +2727,7 @@ fn editor_page() -> SettingsPage {
         ]
     }
 
-    fn vim_settings_section() -> [SettingsPageItem; 14] {
+    fn vim_settings_section() -> [SettingsPageItem; 16] {
         [
             SettingsPageItem::SectionHeader("Vim"),
             SettingsPageItem::SettingItem(SettingItem {
@@ -2739,6 +2739,48 @@ fn editor_page() -> SettingsPage {
                     pick: |settings_content| settings_content.vim.as_ref()?.default_mode.as_ref(),
                     write: |settings_content, value, _| {
                         settings_content.vim.get_or_insert_default().default_mode = value;
+                    },
+                }),
+                metadata: None,
+                files: USER,
+            }),
+            SettingsPageItem::SettingItem(SettingItem {
+                title: "Hide diagnostics when in Insert mode",
+                description: "Hide diagnostics when in Insert mode.",
+                field: Box::new(SettingField {
+                    organization_override: None,
+                    json_path: Some("vim.hide_diag_insert"),
+                    pick: |settings_content| {
+                        settings_content.vim.as_ref()?.hide_diag_insert.as_ref()
+                    },
+                    write: |settings_content, value, _| {
+                        settings_content
+                            .vim
+                            .get_or_insert_default()
+                            .hide_diag_insert = value;
+                    },
+                }),
+                metadata: None,
+                files: USER,
+            }),
+            SettingsPageItem::SettingItem(SettingItem {
+                title: "Hide Inline Diagnostics in Insert mode",
+                description: "Hides the inline diagnostics when in insert mode.",
+                field: Box::new(SettingField {
+                    organization_override: None,
+                    json_path: Some("vim.hide_inline_diag_insert"),
+                    pick: |settings_content| {
+                        settings_content
+                            .vim
+                            .as_ref()?
+                            .hide_inline_diag_insert
+                            .as_ref()
+                    },
+                    write: |settings_content, value, _| {
+                        settings_content
+                            .vim
+                            .get_or_insert_default()
+                            .hide_inline_diag_insert = value;
                     },
                 }),
                 metadata: None,
