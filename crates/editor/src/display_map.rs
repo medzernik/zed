@@ -977,6 +977,7 @@ impl DisplayMap {
                     render: Arc::new({
                         let collapsed_text = collapsed_text.clone();
                         move |fold_id, _fold_range, cx: &mut gpui::App| {
+                            
                             use gpui::{Element as _, ParentElement as _};
                             FoldPlaceholder::fold_element(fold_id, cx)
                                 .child(collapsed_text.clone())

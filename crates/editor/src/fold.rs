@@ -369,7 +369,7 @@ impl Editor {
                 MultiBufferOffset(0)..snapshot.len(),
                 TreeSitterOptions::default(),
             )
-            .filter_map(|(range, obj)| (obj == TextObject::InsideFunction).then_some(range))
+            .filter_map(|(range, obj)| (obj == TextObject::AroundComment).then_some(range))
             .collect::<Vec<_>>();
 
         let creases = ranges
