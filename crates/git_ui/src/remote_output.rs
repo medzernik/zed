@@ -13,6 +13,9 @@ const PULL_REQUEST_HINTS: &[(&str, &str)] = &[
     ("create a merge request", "Create Merge Request"),
     // GitLab: "View merge request for branch:"
     ("View merge request", "View Merge Request"),
+    // SourceHut: "Create a git-send-email patch"
+    // TODO: This will need to be specified later
+    ("Create a patch using <hutui or other>", " Create a patch"),
 ];
 
 #[derive(Clone)]
