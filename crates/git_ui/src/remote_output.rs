@@ -15,7 +15,7 @@ const PULL_REQUEST_HINTS: &[(&str, &str)] = &[
     ("View merge request", "View Merge Request"),
     // SourceHut: "Create a git-send-email patch"
     // TODO: This will need to be specified later
-    ("Create a patch using <hutui or other>", " Create a patch"),
+    ("Create a patch using <hutui or other>", "Create a patch"),
 ];
 
 #[derive(Clone)]
